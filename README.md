@@ -1,1 +1,1 @@
-# azure-static-web-app
+# Azure Static Web Appsのデモ
