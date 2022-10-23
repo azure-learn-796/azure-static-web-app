@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 import { TodoListProps } from '../types/props';
 import TodoItem from './TodoItem';
 
-const TodoList: React.FC<TodoListProps> = memo(({ todoList }) => {
+const TodoList: React.FC<TodoListProps> = memo(({ todoItems }) => {
   return (
     <TableContainer sx={{ maxHeight: 'calc(100vh - 200px)' }}>
       <Table stickyHeader>
@@ -15,7 +15,7 @@ const TodoList: React.FC<TodoListProps> = memo(({ todoList }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {todoList.map((todo) => (
+          {todoItems.map((todo) => (
             <TodoItem key={todo.id} todo={todo} hover />
           ))}
         </TableBody>

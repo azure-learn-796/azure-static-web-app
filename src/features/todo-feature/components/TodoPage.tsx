@@ -1,21 +1,29 @@
 import { AppBar, Box, Button, FormControl, TextField, Toolbar, Typography } from '@mui/material';
-import React, { createContext, memo, useCallback, useContext, useEffect, useState } from 'react';
-import { useCreateTodoItemApi, useDeleteTodoItemApi, useFetchTodoListApi as useFetchTodoItemsApi } from '../api/TodoApiHooks';
+import React, { memo, useCallback, useEffect, useState } from 'react';
+import { useCreateTodoItemApi, useFetchTodoListApi as useFetchTodoItemsApi } from '../api/TodoApiHooks';
+import TodoProvider, { useTodoContext } from '../providers/TodoProvider';
 import { Todo } from '../types/models';
+import { TodoActionType } from '../types/stores';
 import TodoList from './TodoList';
 
 const TodoPage = memo(() => {
-  // TODO(入力)
-  const [content, setContent] = useState<string>('');
-  // TODO一覧
-  const [todoList, setTodoList] = useState<Todo[]>([]);
+  return (
+    <TodoProvider>
+      <TodoPageContent />
+    </TodoProvider>
+  );
+});
 
+const TodoPageContent = memo(() => {
+  // やること
+  const [content, setContent] = useState<string>('');
+
+  // TODO一覧の状態
+  const { state, dispatch } = useTodoContext();
   // TODO一覧取得API
   const fetchTodoItemsApi = useFetchTodoItemsApi();
   // TODO登録API
   const createTodoItemApi = useCreateTodoItemApi();
-  // TODO削除API
-  const deleteTodoItemApi = useDeleteTodoItemApi();
 
   /**
    * TODO一覧取得
@@ -26,13 +34,13 @@ const TodoPage = memo(() => {
     // エラー時
     if (!response.success) {
       console.error(response.error?.message);
-      setTodoList([]);
+      dispatch({ type: TodoActionType.setTodoItems, todoItems: [] });
       return;
     }
 
     // 成功時
-    setTodoList(response.data || []);
-  }, [fetchTodoItemsApi]);
+    dispatch({ type: TodoActionType.setTodoItems, todoItems: response.data || [] });
+  }, [fetchTodoItemsApi, dispatch]);
 
   /**
    * TODOテキスト変更時のハンドラ
@@ -68,30 +76,12 @@ const TodoPage = memo(() => {
       }
 
       if (response.data) {
-        setTodoList([...todoList, response.data]);
+        dispatch({ type: TodoActionType.addTodoItem, todoItems: [response.data] });
       }
 
       setContent('');
     },
-    [content, todoList, createTodoItemApi]
-  );
-
-  /**
-   * TODOリストから指定したアイテムを削除する
-   */
-  const removeItem = useCallback(
-    async (todo: Todo) => {
-      const response = await deleteTodoItemApi(todo.id);
-
-      if (!response.success) {
-        console.error(response.error?.message);
-        return;
-      }
-
-      const filteredTodoList = todoList.filter(({ id }) => id !== todo.id);
-      setTodoList(filteredTodoList);
-    },
-    [todoList, deleteTodoItemApi]
+    [content, createTodoItemApi, dispatch]
   );
 
   useEffect(() => {
@@ -109,38 +99,19 @@ const TodoPage = memo(() => {
           </Toolbar>
         </AppBar>
       </Box>
-      <TodoListOperationContext.Provider value={{ removeItem }}>
-        {/* 入力 */}
-        <FormControl component='form' fullWidth>
-          <Box sx={{ display: 'flex', mb: 3 }} justifyContent='space-between'>
-            <TextField variant='standard' label='やること' fullWidth value={content} onChange={handleTodoChanged} sx={{ mr: 1 }} />
-            <Button variant='contained' type='submit' sx={{ width: '8rem' }} onClick={handleRegisterButtonClicked}>
-              追加
-            </Button>
-          </Box>
-        </FormControl>
-        {/* 一覧 */}
-        <TodoList todoList={todoList} />
-      </TodoListOperationContext.Provider>
+      {/* 入力 */}
+      <FormControl component='form' fullWidth>
+        <Box sx={{ display: 'flex', mb: 3 }} justifyContent='space-between'>
+          <TextField variant='standard' label='やること' fullWidth value={content} onChange={handleTodoChanged} sx={{ mr: 1 }} />
+          <Button variant='contained' type='submit' sx={{ width: '8rem' }} onClick={handleRegisterButtonClicked}>
+            追加
+          </Button>
+        </Box>
+      </FormControl>
+      {/* 一覧 */}
+      <TodoList todoItems={state.todoItems} />
     </div>
   );
 });
 
-/**
- * TODO一覧操作コンテキストのタイプ
- */
-type TodoListOperationType = {
-  removeItem: (todo: Todo) => void;
-};
-
-/**
- * TODO一覧操作コンテキスト
- */
-const TodoListOperationContext = createContext<TodoListOperationType>({
-  removeItem: () => {
-    throw Error('Providerが設定されていません。');
-  },
-});
-
 export default TodoPage;
-export const useTodoListOperation = () => useContext(TodoListOperationContext);

@@ -1,5 +1,6 @@
+/** TODO */
 export type Todo = {
-    id: number;
-    content: string | null;
-    done: boolean;
-}
+  id: number;
+  content: string | null;
+  done: boolean;
+};

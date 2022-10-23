@@ -1,18 +1,18 @@
 import { Button, Checkbox, TableCell, TableRow, Typography } from '@mui/material';
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback } from 'react';
 import { TodoItemProps } from '../types/props';
 import { Todo } from '../types/models';
-import { useTodoListOperation } from './TodoPage';
-import { useUpdateTodoItemApi } from '../api/TodoApiHooks';
+import { useDeleteTodoItemApi, useUpdateTodoItemApi } from '../api/TodoApiHooks';
+import { useTodoContext } from '../providers/TodoProvider';
+import { TodoActionType } from '../types/stores';
 
 const TodoItem: React.FC<TodoItemProps> = memo(({ todo, ...props }) => {
-  // 済チェックボックス
-  const [done, setDone] = useState<boolean>(todo.done);
-
-  // TODOアイテム削除処理
-  const { removeItem } = useTodoListOperation();
+  // TODO一覧の状態
+  const { dispatch } = useTodoContext();
   // TODO更新API
   const updateTodoItemApi = useUpdateTodoItemApi();
+  // TODO削除API
+  const deleteTodoItemApi = useDeleteTodoItemApi();
 
   /**
    * 済チェックボックス変更時のハンドラ
@@ -28,9 +28,9 @@ const TodoItem: React.FC<TodoItemProps> = memo(({ todo, ...props }) => {
         return;
       }
 
-      setDone(todo.done);
+      dispatch({ type: TodoActionType.replaceTodoItem, todoItems: [{ ...todo }] });
     },
-    [updateTodoItemApi]
+    [updateTodoItemApi, dispatch]
   );
 
   /**
@@ -38,16 +38,23 @@ const TodoItem: React.FC<TodoItemProps> = memo(({ todo, ...props }) => {
    * @param todo Todoレコード
    */
   const handleDeleteBtnClicked = useCallback(
-    (todo: Todo): void => {
-      removeItem(todo);
+    async (todo: Todo): Promise<void> => {
+      const response = await deleteTodoItemApi(todo.id);
+
+      if (!response.success) {
+        console.error(response.error?.message);
+        return;
+      }
+
+      dispatch({ type: TodoActionType.removeTodoItem, todoItems: [todo] });
     },
-    [removeItem]
+    [deleteTodoItemApi, dispatch]
   );
 
   return (
     <TableRow {...props}>
       <TableCell>
-        <Checkbox checked={done} onChange={() => handleCheckChanged(todo)} />
+        <Checkbox checked={todo.done} onChange={() => handleCheckChanged(todo)} />
       </TableCell>
       <TableCell width='100%'>
         <Typography>{todo.content}</Typography>

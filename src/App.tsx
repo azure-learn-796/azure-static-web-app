@@ -1,4 +1,4 @@
-import TodoPage from "./features/todo-feature/components/TodoPage";
+import TodoPage from './features/todo-feature/components/TodoPage';
 
 function App() {
   return <TodoPage />;
