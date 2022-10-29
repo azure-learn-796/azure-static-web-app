@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, API_KEY, API_ORIGIN } from '../../../utils/ApiUtil';
+import { ajaxDelete, ajaxGet, ajaxPost, ajaxPatch, API_KEY, API_ORIGIN } from '../../../utils/ApiUtil';
 import { Todo } from '../types/models';
 
 /** APIのベースURL */
-const BASE_URL = `${API_ORIGIN}/api/todo`;
+const BASE_URL = `${API_ORIGIN}/api/todos`;
 
 /**
  * fetchTodoItem API呼び出し
@@ -11,7 +11,7 @@ const BASE_URL = `${API_ORIGIN}/api/todo`;
  */
 export const useFetchTodoListApi = () =>
   useCallback(async () => {
-    return ajaxGet<Todo[]>(`${BASE_URL}/list`, {
+    return ajaxGet<Todo[]>(BASE_URL, {
       code: API_KEY,
     });
   }, []);
@@ -22,7 +22,7 @@ export const useFetchTodoListApi = () =>
  */
 export const useCreateTodoItemApi = () =>
   useCallback(async (data: Todo) => {
-    return ajaxPost<Todo, Todo>(`${BASE_URL}/create`, data, {
+    return ajaxPost<Todo, Todo>(BASE_URL, data, {
       code: API_KEY,
     });
   }, []);
@@ -33,7 +33,7 @@ export const useCreateTodoItemApi = () =>
  */
 export const useUpdateTodoItemApi = () =>
   useCallback(async (id: number, data: Todo) => {
-    return ajaxPut<Todo>(`${BASE_URL}/${id}/update`, data, {
+    return ajaxPatch<Todo>(`${BASE_URL}/${id}`, data, {
       code: API_KEY,
     });
   }, []);
@@ -44,7 +44,7 @@ export const useUpdateTodoItemApi = () =>
  */
 export const useDeleteTodoItemApi = () =>
   useCallback(async (id: number) => {
-    return ajaxDelete(`${BASE_URL}/${id}/delete`, {
+    return ajaxDelete(`${BASE_URL}/${id}`, {
       code: API_KEY,
     });
   }, []);

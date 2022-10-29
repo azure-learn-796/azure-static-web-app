@@ -18,6 +18,7 @@ const ajaxRequest = async <D, T>(config: AxiosRequestConfig<D>): Promise<ApiResp
     const response: ApiResponse<T> = {
       success: true,
       status: axiosResponse.status,
+      headers: axiosResponse.headers,
       data: axiosResponse.data,
     };
     return response;
@@ -26,6 +27,7 @@ const ajaxRequest = async <D, T>(config: AxiosRequestConfig<D>): Promise<ApiResp
       const response: ApiResponse<T> = {
         success: false,
         status: e.status,
+        headers: e.response?.headers,
         error: {
           code: e.code,
           message: e.message,
@@ -35,6 +37,7 @@ const ajaxRequest = async <D, T>(config: AxiosRequestConfig<D>): Promise<ApiResp
     } else {
       const response: ApiResponse<T> = {
         success: false,
+        headers: {},
         error: {
           message: '予期せぬエラーが発生しました。',
         },
@@ -54,8 +57,8 @@ export const ajaxPost = async <D, T = void>(url: string, data?: D, params?: any)
   return await ajaxRequest({ method, url, params, data });
 };
 
-export const ajaxPut = async <D, T = void>(url: string, data?: D, params?: any): Promise<ApiResponse<T>> => {
-  const method = 'PUT';
+export const ajaxPatch = async <D, T = void>(url: string, data?: D, params?: any): Promise<ApiResponse<T>> => {
+  const method = 'PATCH';
   return await ajaxRequest({ method, url, params, data });
 };
 
